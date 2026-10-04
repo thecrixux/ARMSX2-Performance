@@ -70,6 +70,57 @@ jobs:
         run: |
           python3 app/src/main/cpp/3rdparty/shaderc/utils/git-sync-deps
 
+      - name: Generate missing MenuSfx resources
+        shell: bash
+        run: |
+          python3 <<'PY'
+          import os
+          import wave
+
+          raw_dir = "platforms/android/app/src/main/res/raw"
+          os.makedirs(raw_dir, exist_ok=True)
+
+          sounds = [
+              "sfx_nav_a",
+              "sfx_nav_b",
+              "sfx_select",
+              "sfx_submenu",
+              "sfx_menu",
+              "sfx_back",
+              "sfx_toggle_on",
+              "sfx_toggle_off",
+              "sfx_reset",
+              "sfx_sleep",
+              "sfx_wake",
+              "sfx_popup_open",
+              "sfx_popup_close",
+          ]
+
+          # 20 ms de silencio PCM mono.
+          sample_rate = 44100
+          frames = int(sample_rate * 0.02)
+          silence = b"\x00\x00" * frames
+
+          for name in sounds:
+              path = os.path.join(raw_dir, f"{name}.wav")
+
+              if os.path.exists(path):
+                  print(f"Already exists: {path}")
+                  continue
+
+              with wave.open(path, "wb") as wav:
+                  wav.setnchannels(1)
+                  wav.setsampwidth(2)
+                  wav.setframerate(sample_rate)
+                  wav.writeframes(silence)
+
+              print(f"Generated placeholder: {path}")
+          PY
+
+          echo
+          echo "Menu SFX resources:"
+          ls -lh platforms/android/app/src/main/res/raw/sfx_*.wav
+
       - name: Create Android debug keystore
         shell: bash
         run: |
