@@ -48,7 +48,9 @@ jobs:
           targets: aarch64-linux-android
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          packages: ""
 
       - name: Install Android SDK, NDK and CMake
         shell: bash
@@ -92,7 +94,16 @@ jobs:
           chmod +x gradlew
           chmod +x tools/build-universal-page-apk.sh
 
+          echo "Java:"
+          java -version
+
+          echo
+          echo "Gradle:"
           ./gradlew --version
+
+          echo
+          echo "Android SDK:"
+          echo "$ANDROID_HOME"
 
       - name: Build universal 4K + 16K APK
         working-directory: platforms/android
@@ -107,7 +118,10 @@ jobs:
         run: |
           APK="$GITHUB_WORKSPACE/ARMSX2-Performance-Android-Universal.apk"
 
-          test -f "$APK"
+          if [ ! -f "$APK" ]; then
+            echo "APK not found"
+            exit 1
+          fi
 
           echo "APK generated:"
           ls -lh "$APK"
